@@ -3,12 +3,40 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
+const PORT = 8000;
+
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
+export default defineConfig(({ mode }) => {
+  // Base configuration that applies to all environments
+  const config = {
+    plugins: [react(), tailwindcss()],
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
     },
-  },
+    server: {
+      port: 5174,
+      proxy: {},
+    },
+  };
+
+  // Configure server based on environment
+  if (mode === "development") {
+    config.server.proxy = {
+      "/api": {
+        target: `http://127.0.0.1:${PORT}`,
+        changeOrigin: true,
+        // Uncomment the following if you want to remove the /api prefix when forwarding to Flask
+        // rewrite: (path) => path.replace(/^\/api/, '')
+      },
+      // Also proxy WebSocket connections
+      "/socket.io": {
+        target: `ws://127.0.0.1:${PORT}`,
+        ws: true,
+      },
+    };
+  }
+
+  return config;
 });

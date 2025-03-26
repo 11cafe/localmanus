@@ -12,7 +12,7 @@ function Home() {
 
   useEffect(() => {
     // Create WebSocket connection
-    const socket = new WebSocket("ws://localhost:5000/ws");
+    const socket = new WebSocket("ws://localhost:8000/ws");
     webSocketRef.current = socket;
 
     // Connection opened

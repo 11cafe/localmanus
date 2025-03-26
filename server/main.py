@@ -1,103 +1,70 @@
 # app.py
+import sys
 from time import sleep
 from flask import Flask, request
 import os
-from openmanus.app.agent.manus import Manus
-from openmanus.app.schema import AgentState
 import asyncio
-from flask_socketio import SocketIO, emit
+import websockets
+import json
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key'  # Required for Flask-SocketIO
-socketio = SocketIO(app, cors_allowed_origins="*")  # Allow connections from any origin
-
 
 root_dir = os.path.dirname(os.path.dirname(__file__))
 config_path = os.path.join(root_dir, "config", "config.json")
+
+
+openmanus_dir = sys.path.append(os.path.join(root_dir, "server", "openmanus"))  # Add the server directory to Python path
+print('openmanus_dir', openmanus_dir)
+
+from openmanus.app.agent.manus import Manus
+from openmanus.app.schema import AgentState
 agent = Manus()
 
-@app.route("/")
-def hello():
-    return "Hello from Flask + Gunicorn!"
+from fastapi import FastAPI, WebSocket
+import asyncio
+import json
 
-@app.route("/api/config_exists")
-def config_exists():
-    return '1' if os.path.exists(config_path) else '0'
+app = FastAPI()
 
-@app.route("/api/save_config")
-def save_config():
-    with open(config_path, "w") as f:
-        f.write("{}")
-    return "Config saved"
+@app.get("/")
+async def hello():
+    return {"message": "Hello from FastAPI!"}
 
-@app.route("/api/prompt")
-def prompt():
-    task_id = request.args.get('task_id', 'default_task')
-    prompt_text = request.args.get('prompt', 'summary aapl stock trends this year')
-    socketio.start_background_task(run_agent_task, prompt_text, task_id)
+@app.get("/api/config_exists")
+async def config_exists():
+    # Implement your logic here
+    return {"exists": True}
 
-    asyncio.create_task(agent.run('summary aapl stock trends this year'))
-    return "Prompt"
+@app.post("/api/save_config")
+async def save_config():
+    # Implement your logic here
+    return {"status": "Config saved"}
 
+@app.get("/api/prompt")
+async def prompt():
+    # Implement your logic here
+    return {"status": "Prompt sent"}
 
-@socketio.on('connect')
-def handle_connect():
-    """Handle client connection"""
-    print(f"Client connected: {request.sid}")
-    emit('connection_response', {'status': 'connected'})
-
-@socketio.on('disconnect')
-def handle_disconnect():
-    """Handle client disconnection"""
-    print(f"Client disconnected: {request.sid}")
-
-# WebSocket task subscription handler
-# @socketio.on('subscribe_to_task')
-# def handle_task_subscription(data):
-#     """Handle client subscription to task updates"""
-#     prompt_text = data.get('prompt', '')
-#     task_id = data.get('task_id', 'default_task')
-    
-#     # Start the task in a non-blocking way
-#     socketio.start_background_task(run_agent_task, prompt_text, task_id)
-    
-#     return {'status': 'subscribed', 'task_id': task_id}
-
-def run_agent_task(prompt_text, task_id):
-    """Run the agent task and continuously send status updates to the client"""
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
     try:
-        # Check status in a loop until completion
-        status = 'running'
-        while agent.state == AgentState.IDLE:
-            sleep(0.2)
-        while agent.state == AgentState.RUNNING:
-            # Get current status (implement this method in your Manus class)
-            last_message = agent.messages[-1].content
-            print('🦄',last_message)
-
-            # Send update to client
-            emit('task_update', {
-                'task_id': task_id,
-                'status': agent.state,
-                'message_content': last_message,
-                'message': agent.messages[-1].to_dict()
-            }, broadcast=True)
-            
-            # Wait before checking again
-            socketio.sleep(1)
-        
-        # Final update with results
-        result = agent.get_task_result(task_id)
-        emit('task_complete', {
-            'task_id': task_id,
-            'status': status,
-            'result': result
-        }, broadcast=True)
-        
+        while True:
+            data = await websocket.receive_text()
+            message = json.loads(data)
+            if message['action'] == 'prompt':
+                task_id = message.get('task_id', 'default_task')
+                prompt_text = message.get('prompt', 'summary aapl stock trends this year')
+                # Implement your task handling logic here
+                await websocket.send_text(json.dumps({
+                    'task_id': task_id,
+                    'status': 'running',
+                    'message_content': 'Processing...'
+                }))
     except Exception as e:
-        # Handle errors
-        emit('task_error', {
-            'task_id': task_id,
-            'status': 'failed',
-            'error': str(e)
-        }, broadcast=True)
+        await websocket.close()
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
