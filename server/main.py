@@ -1,6 +1,8 @@
 # app.py
 import sys
 from time import sleep
+import time
+import traceback
 from flask import Flask, request
 import os
 import asyncio
@@ -44,6 +46,7 @@ async def save_config():
 @app.get("/api/prompt")
 async def prompt():
     # Implement your logic here
+    await agent.run('aapl stock trends this year')
     return {"status": "Prompt sent"}
 
 @app.websocket("/ws")
@@ -51,18 +54,17 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     try:
         while True:
-            data = await websocket.receive_text()
-            message = json.loads(data)
-            if message['action'] == 'prompt':
-                task_id = message.get('task_id', 'default_task')
-                prompt_text = message.get('prompt', 'summary aapl stock trends this year')
-                # Implement your task handling logic here
-                await websocket.send_text(json.dumps({
-                    'task_id': task_id,
-                    'status': 'running',
-                    'message_content': 'Processing...'
-                }))
+            state = agent.state  # Replace with actual method to get state if needed
+            last_message_content = agent.memory.messages[-1].content if agent.memory.messages else "No messages yet."
+
+            await websocket.send_text(json.dumps({
+                'agent_state': state,
+                'message': last_message_content
+            }))
+            
+            await asyncio.sleep(1)  
     except Exception as e:
+        traceback.print_exc()
         await websocket.close()
 
 if __name__ == "__main__":

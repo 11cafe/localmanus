@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => {
         // rewrite: (path) => path.replace(/^\/api/, '')
       },
       // Also proxy WebSocket connections
-      "/socket.io": {
+      "/ws": {
         target: `ws://127.0.0.1:${PORT}`,
         ws: true,
       },
