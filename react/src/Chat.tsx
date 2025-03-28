@@ -10,6 +10,7 @@ const ChatInterface = ({
   currentStep,
   maxStep,
   totalTokens,
+  agentState,
 }: {
   messages: Message[];
   currentStep: number;
@@ -18,6 +19,7 @@ const ChatInterface = ({
   agentState: EAgentState;
 }) => {
   const [prompt, setPrompt] = useState("");
+  const [disableStop, setDisableStop] = useState(false);
   // Process messages to handle consecutive roles appropriately
   const processMessages = (messages: Message[]) => {
     const processed: MessageGroup[] = [];
@@ -63,6 +65,9 @@ const ChatInterface = ({
 
   const processedMessages = processMessages(exampleMessages);
   const onSendPrompt = () => {
+    if (agentState == EAgentState.RUNNING) {
+      return;
+    }
     setPrompt("");
     fetch("/api/prompt", {
       method: "Post",
@@ -175,10 +180,26 @@ const ChatInterface = ({
         className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-950 p-4"
         style={{ height: FOOTER_HEIGHT }}
       >
+        <div className="flex max-w-3xl mx-auto gap-2">
+          {/* <p>{agentState}</p> */}
+          {agentState == EAgentState.RUNNING && (
+            <div className="flex justify-center items-center">
+              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-zinc-500"></div>
+            </div>
+          )}
+
+          {currentStep !== 0 && (
+            <p>
+              {agentState == EAgentState.RUNNING ? "Running" : "Finished"} Step:{" "}
+              {currentStep}/{maxStep}
+            </p>
+          )}
+        </div>
+
         <div className="flex items-center space-x-2 max-w-3xl mx-auto h-full">
           <textarea
             className="flex-1 h-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 p-3 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Type your message..."
+            placeholder="What do you want to do?"
             value={prompt}
             onChange={(e) => {
               setPrompt(e.target.value);
@@ -191,16 +212,26 @@ const ChatInterface = ({
               }
             }}
           />
-          <Button onClick={onSendPrompt}>
+          <Button
+            onClick={onSendPrompt}
+            disabled={agentState == EAgentState.RUNNING}
+          >
             <SendIcon />
           </Button>
-          <Button
-            onClick={() => {
-              fetch("/api/cancel");
-            }}
-          >
-            <StopCircleIcon />
-          </Button>
+          {agentState == EAgentState.RUNNING && (
+            <Button
+              disabled={disableStop}
+              onClick={() => {
+                fetch("/api/cancel");
+                setDisableStop(true);
+                setTimeout(() => {
+                  setDisableStop(false);
+                }, 2000);
+              }}
+            >
+              <StopCircleIcon />
+            </Button>
+          )}
         </div>
       </div>
     </div>

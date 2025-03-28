@@ -10,7 +10,7 @@ import { exampleMessages } from "./exampleMessages";
 
 function Home() {
   const [agentState, setAgentState] = useState(EAgentState.IDLE);
-  const [messages, setMessages] = useState<Message[]>(exampleMessages);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [maxSteps, setMaxSteps] = useState(0);
   const [totalTokens, setTotalTokens] = useState(0);

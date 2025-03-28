@@ -1,12 +1,8 @@
 # app.py
 import sys
-from time import sleep
-import time
 import traceback
-from flask import Flask, request
 import os
 import asyncio
-import websockets
 import json
 from fastapi import FastAPI, WebSocket, Request 
 import asyncio
@@ -22,7 +18,15 @@ print('openmanus_dir', openmanus_dir)
 from openmanus.app.agent.manus import Manus
 from openmanus.app.schema import AgentState
 agent = Manus()
-
+agent.max_steps = 4
+# Monkey patch the think method to check for the cancel event
+original_think = agent.think
+async def new_think():
+    if cancel_event.is_set():
+        raise Exception("Cancel event set")
+        # return False
+    return await original_think()
+agent.think = new_think
 
 app = FastAPI()
 cancel_event = asyncio.Event()
@@ -49,7 +53,8 @@ async def prompt(request: Request):  # Add Request as a parameter
     print('prompt_text', prompt_text)
     print(f"Agent type: {type(agent)}")
     # print(f"Run method: {agent.run}")
-
+    # clear agent messages
+    agent.memory.messages = []
     await agent.run(prompt_text)  # Use the extracted prompt text
     return {"success": True}
 
