@@ -55,17 +55,22 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             state = agent.state  # Replace with actual method to get state if needed
-            last_message_content = agent.memory.messages[-1].content if agent.memory.messages else "No messages yet."
-
+            messages = agent.memory.messages if agent.memory.messages else []
             await websocket.send_text(json.dumps({
                 'agent_state': state,
-                'message': last_message_content
+                'messages': [message.to_dict() for message in messages],
+                'current_step': agent.current_step,
+                'max_steps': agent.max_steps,
+                'total_tokens': agent.llm.total_input_tokens + agent.llm.total_completion_tokens,
             }))
             
             await asyncio.sleep(1)  
     except Exception as e:
         traceback.print_exc()
-        await websocket.close()
+        try:
+            await websocket.close()
+        except:
+            pass
 
 if __name__ == "__main__":
     import uvicorn
