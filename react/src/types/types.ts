@@ -21,3 +21,10 @@ export interface MessageGroup {
   role: string;
   messages: Message[];
 }
+
+export enum EAgentState {
+  IDLE = "IDLE",
+  RUNNING = "RUNNING",
+  FINISHED = "FINISHED",
+  ERROR = "ERROR",
+}

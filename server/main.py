@@ -8,9 +8,9 @@ import os
 import asyncio
 import websockets
 import json
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key'  # Required for Flask-SocketIO
+from fastapi import FastAPI, WebSocket, Request 
+import asyncio
+import json
 
 root_dir = os.path.dirname(os.path.dirname(__file__))
 config_path = os.path.join(root_dir, "config", "config.json")
@@ -23,11 +23,9 @@ from openmanus.app.agent.manus import Manus
 from openmanus.app.schema import AgentState
 agent = Manus()
 
-from fastapi import FastAPI, WebSocket
-import asyncio
-import json
 
 app = FastAPI()
+cancel_event = asyncio.Event()
 
 @app.get("/")
 async def hello():
@@ -43,11 +41,23 @@ async def save_config():
     # Implement your logic here
     return {"status": "Config saved"}
 
-@app.get("/api/prompt")
-async def prompt():
-    # Implement your logic here
-    await agent.run('aapl stock trends this year')
-    return {"status": "Prompt sent"}
+@app.post("/api/prompt")
+async def prompt(request: Request):  # Add Request as a parameter
+    cancel_event.clear()
+    data = await request.json() 
+    prompt_text = data.get('prompt')  
+    print('prompt_text', prompt_text)
+    print(f"Agent type: {type(agent)}")
+    # print(f"Run method: {agent.run}")
+
+    await agent.run(prompt_text)  # Use the extracted prompt text
+    return {"success": True}
+
+@app.get("/api/cancel")
+async def cancel():
+    global cancel_event  # Ensure we're using the global cancel_event
+    cancel_event.set()   # Set the event
+    return "Cancel event set"
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

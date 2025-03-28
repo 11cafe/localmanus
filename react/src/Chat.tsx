@@ -1,12 +1,23 @@
 import React, { useState } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Message, MessageGroup, ToolCall } from "./types/types";
+import { EAgentState, Message, MessageGroup, ToolCall } from "./types/types";
+import { Button } from "./components/ui/button";
+import { SendIcon, SquareIcon, StopCircleIcon } from "lucide-react";
+
+const FOOTER_HEIGHT = 150; // Adjust this value as needed
 
 const ChatInterface = ({
   messages: exampleMessages,
+  currentStep,
+  maxStep,
+  totalTokens,
 }: {
   messages: Message[];
+  currentStep: number;
+  maxStep: number;
+  totalTokens: number;
+  agentState: EAgentState;
 }) => {
+  const [prompt, setPrompt] = useState("");
   // Process messages to handle consecutive roles appropriately
   const processMessages = (messages: Message[]) => {
     const processed: MessageGroup[] = [];
@@ -51,7 +62,18 @@ const ChatInterface = ({
   };
 
   const processedMessages = processMessages(exampleMessages);
-
+  const onSendPrompt = () => {
+    setPrompt("");
+    fetch("/api/prompt", {
+      method: "Post",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt,
+      }),
+    }).then((resp) => resp.json());
+  };
   // Component to render tool call tag
   const ToolCallTag = ({ toolCall }: { toolCall: ToolCall }) => {
     const { name, arguments: args } = toolCall.function;
@@ -79,16 +101,14 @@ const ChatInterface = ({
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col h-screen">
       {/* Chat header */}
-      <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-4">
-        <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-          Chat
-        </h1>
+      <header className="p-4">
+        <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100"></h1>
       </header>
 
       {/* Chat messages */}
-      <ScrollArea className="flex-1 p-4">
+      <div className="flex-1 p-4" style={{ paddingBottom: FOOTER_HEIGHT }}>
         <div className="space-y-6 max-w-3xl mx-auto">
           {processedMessages.map((group) => (
             <div
@@ -98,27 +118,18 @@ const ChatInterface = ({
               }`}
             >
               {/* Role label */}
-              <div
-                className={`flex items-center ${
-                  group.role === "user"
-                    ? "flex-row-reverse space-x-reverse"
-                    : ""
-                } space-x-2`}
+              {/* <div
+                className={`flex items-center space-x-2`}
               >
-                <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800 text-sm">
-                  {group.role === "user" ? "👤" : "🤖"}
-                </div>
                 <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                   {group.role === "user" ? "You" : "Assistant"}
                 </span>
-              </div>
+              </div> */}
 
               {/* Messages */}
               <div
                 className={`${
-                  group.role === "user"
-                    ? "mr-10 items-end"
-                    : "ml-10 items-start"
+                  group.role === "user" ? "ml-10 items-end" : "items-start"
                 } space-y-3 flex flex-col ${
                   group.role === "user" ? "items-end" : "items-start"
                 }`}
@@ -133,9 +144,9 @@ const ChatInterface = ({
                     {/* Regular message content */}
                     {message.content && (
                       <div
-                        className={`${
+                        className={`break-all ${
                           group.role === "user"
-                            ? "bg-blue-100 dark:bg-blue-900 dark:text-gray-100 rounded-2xl p-3 max-w-[90%] text-right"
+                            ? "bg-primary text-primary-foreground rounded-2xl p-3 text-left"
                             : "text-gray-800 dark:text-gray-200 text-left"
                         }`}
                       >
@@ -157,32 +168,39 @@ const ChatInterface = ({
             </div>
           ))}
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Chat input */}
-      <div className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-4">
-        <div className="flex items-end space-x-2 max-w-3xl mx-auto">
+      <div
+        className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-950 p-4"
+        style={{ height: FOOTER_HEIGHT }}
+      >
+        <div className="flex items-center space-x-2 max-w-3xl mx-auto h-full">
           <textarea
-            className="flex-1 min-h-[60px] max-h-[200px] rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 p-3 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 h-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 p-3 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Type your message..."
+            value={prompt}
+            onChange={(e) => {
+              setPrompt(e.target.value);
+            }}
             rows={2}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault(); // Prevents adding a new line
+                onSendPrompt();
+              }
+            }}
           />
-          <button className="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg p-3">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-            </svg>
-          </button>
+          <Button onClick={onSendPrompt}>
+            <SendIcon />
+          </Button>
+          <Button
+            onClick={() => {
+              fetch("/api/cancel");
+            }}
+          >
+            <StopCircleIcon />
+          </Button>
         </div>
       </div>
     </div>
