@@ -7,6 +7,8 @@ import json
 from fastapi import FastAPI, WebSocket, Request 
 import asyncio
 import json
+import toml
+from typing import Dict, Any
 
 root_dir = os.path.dirname(os.path.dirname(__file__))
 config_path = os.path.join(root_dir, "config", "config.json")
@@ -63,6 +65,58 @@ async def cancel():
     global cancel_event  # Ensure we're using the global cancel_event
     cancel_event.set()   # Set the event
     return "Cancel event set"
+
+@app.post("/api/config")
+async def update_config(request: Request):
+    try:
+        # Get JSON data from request
+        data = await request.json()
+        
+        # Read existing config
+        config_file = os.path.join(root_dir, "server", "openmanus", "config", "config.toml")
+        with open(config_file, 'r') as f:
+            config = toml.load(f)
+        
+        # Update both llm and llm.vision configs with the same settings
+        if 'llm' in data:
+            llm_config = data['llm']
+            for key in ['model', 'base_url', 'api_key', 'max_tokens', 'temperature']:
+                if key in llm_config:
+                    # Update main llm config
+                    config['llm'][key] = llm_config[key]
+                    # Update vision config with the same values
+                    if 'llm.vision' not in config:
+                        config['llm.vision'] = {}
+                    config['llm.vision'][key] = llm_config[key]
+        
+        # Save updated config
+        with open(config_file, 'w') as f:
+            toml.dump(config, f)
+        
+        return {"status": "success", "message": "Configuration updated successfully"}
+    
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.get("/api/config")
+async def get_config():
+    try:
+        # Read config file
+        config_file = os.path.join(root_dir, "server", "openmanus", "config", "config.toml")
+        with open(config_file, 'r') as f:
+            config = toml.load(f)
+        
+        # Mask API keys
+        if 'llm' in config:
+            if 'api_key' in config['llm']:
+                config['llm']['api_key'] = '********'
+        if 'llm.vision' in config:
+            if 'api_key' in config['llm.vision']:
+                config['llm.vision']['api_key'] = '********'
+        
+        return {"status": "success", "config": config}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
