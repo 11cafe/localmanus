@@ -31,4 +31,6 @@ class AgentService:
             'current_step': self.agent.current_step,
             'max_steps': self.agent.max_steps,
             'total_tokens': self.agent.llm.total_input_tokens + self.agent.llm.total_completion_tokens,
-        } 
+        }     
+
+agent_service = AgentService()

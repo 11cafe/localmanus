@@ -1,10 +1,9 @@
 from fastapi import APIRouter, WebSocket
 import json
 import asyncio
-from localmanus.services.agent_service import AgentService
+from localmanus.services.agent_service import agent_service
 
 router = APIRouter()
-agent_service = AgentService()
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

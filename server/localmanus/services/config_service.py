@@ -44,3 +44,5 @@ class ConfigService:
             return {"status": "success", "message": "Configuration updated successfully"}
         except Exception as e:
             return {"status": "error", "message": str(e)} 
+        
+config_service = ConfigService()

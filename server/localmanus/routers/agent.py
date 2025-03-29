@@ -1,12 +1,10 @@
 import asyncio
 
 from fastapi import APIRouter, Request
-from localmanus.services.agent_service import AgentService
+from localmanus.services.agent_service import agent_service
 
 
 router = APIRouter(prefix="/api")
-agent_service = AgentService()
-cancel_event = asyncio.Event()
 
 @router.post("/prompt")
 async def prompt(request: Request):

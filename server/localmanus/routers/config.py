@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Request
-from localmanus.services.config_service import ConfigService
+from localmanus.services.config_service import config_service
+from localmanus.services.agent_service import agent_service
 
 router = APIRouter(prefix="/api/config")
-config_service = ConfigService()
 
 @router.get("/exists")
 async def config_exists():
