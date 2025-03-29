@@ -18,6 +18,7 @@ import {
 import { Button } from "./components/ui/button";
 import { Label } from "./components/ui/label";
 import { Save } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Settings() {
   const [provider, setProvider] = useState("openai");
@@ -26,6 +27,9 @@ export default function Settings() {
   const [apiUrl, setApiUrl] = useState("");
   const [model, setModel] = useState("gpt-4-turbo-preview");
   const [isLoading, setIsLoading] = useState(true);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -95,7 +99,7 @@ export default function Settings() {
 
       const result = await response.json();
       if (result.status === "success") {
-        // You might want to show a success message here
+        setSuccessMessage("Settings saved successfully!");
         console.log("Settings saved successfully");
       } else {
         throw new Error(result.message || "Failed to save configuration");
@@ -228,6 +232,16 @@ export default function Settings() {
           <Button onClick={handleSave} className="w-full">
             <Save className="mr-2 h-4 w-4" /> Save Settings
           </Button>
+
+          <Button onClick={() => navigate("/")} className="w-full">
+            Return
+          </Button>
+
+          {successMessage && (
+            <div className="text-green-500 text-center mb-4">
+              {successMessage}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
