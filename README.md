@@ -17,4 +17,4 @@ playwright install
 ## Development
 
 `cd react && npm run dev`
-`cd server && python main.py`
+`cd server && python localmanus/main.py`
