@@ -29,6 +29,25 @@ export default function Settings() {
   const [isLoading, setIsLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState("");
 
+  const openaiProvider = {
+    name: "openai",
+    baseUrl: "https://api.openai.com/v1/",
+    models: [
+      { value: "gpt-4o-mini", label: "GPT-4o-mini" },
+      { value: "gpt-4o", label: "GPT-4o" },
+    ],
+  };
+
+  const anthropicProvider = {
+    name: "anthropic",
+    baseUrl: "https://api.anthropic.com/v1/",
+    models: [
+      { value: "claude-3-opus-20240229", label: "Claude 3 Opus" },
+      { value: "claude-3-sonnet-20240229", label: "Claude 3 Sonnet" },
+      { value: "claude-2.1", label: "Claude 2.1" },
+    ],
+  };
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -108,25 +127,6 @@ export default function Settings() {
       console.error("Error saving settings:", error);
       // You might want to show an error message to the user here
     }
-  };
-
-  const openaiProvider = {
-    name: "openai",
-    baseUrl: "https://api.openai.com/v1/",
-    models: [
-      { value: "gpt-4o-mini", label: "GPT-4o-mini" },
-      { value: "gpt-4o", label: "GPT-4o" },
-    ],
-  };
-
-  const anthropicProvider = {
-    name: "anthropic",
-    baseUrl: "https://api.anthropic.com/v1/",
-    models: [
-      { value: "claude-3-opus-20240229", label: "Claude 3 Opus" },
-      { value: "claude-3-sonnet-20240229", label: "Claude 3 Sonnet" },
-      { value: "claude-2.1", label: "Claude 2.1" },
-    ],
   };
 
   const getModelOptions = () => {
