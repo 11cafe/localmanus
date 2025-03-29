@@ -4,6 +4,10 @@ from openmanus.app.agent.manus import Manus
 
 class AgentService:
     def __init__(self):
+        self.cancel_event = asyncio.Event()
+        self.reload_agent()
+
+    def reload_agent(self):
         self.agent = Manus()
         self.agent.max_steps = 4
         original_think = self.agent.think
@@ -12,10 +16,8 @@ class AgentService:
                 raise Exception("Cancel event set")
                 # return False
             return await original_think()
-        
         self.agent.think = new_think
-        self.cancel_event = asyncio.Event()
-        
+
     async def run_prompt(self, prompt_text: str):
         self.cancel_event.clear()
         self.agent.memory.messages = []

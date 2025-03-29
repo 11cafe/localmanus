@@ -17,5 +17,5 @@ async def prompt(request: Request):
 
 @router.get("/cancel")
 async def cancel():
-    await agent_service.cancel_event.set()
+    agent_service.cancel_event.set()
     return "Cancel event set"

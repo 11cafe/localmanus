@@ -15,4 +15,7 @@ async def get_config():
 @router.post("")
 async def update_config(request: Request):
     data = await request.json()
-    return await config_service.update_config(data) 
+    res = await config_service.update_config(data) 
+    if res['status'] == 'success':
+        await agent_service.reload_agent()
+    return res
