@@ -70,11 +70,13 @@ function Home() {
 
   return (
     <div>
-      <Link to="/settings">
-        <Button size={"icon"} className="float-left">
-          <SettingsIcon size={30} />
-        </Button>
-      </Link>
+      <div className="fixed top-5 left-8">
+        <Link to="/settings">
+          <Button size={"icon"}>
+            <SettingsIcon size={30} />
+          </Button>
+        </Link>
+      </div>
 
       <div>
         <ChatInterface
