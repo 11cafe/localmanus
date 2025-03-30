@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { EAgentState, Message, MessageGroup, ToolCall } from "./types/types";
 import { Button } from "./components/ui/button";
 import { SendIcon, SquareIcon, StopCircleIcon } from "lucide-react";
+import { Badge } from "./components/ui/badge";
 
-const FOOTER_HEIGHT = 150; // Adjust this value as needed
+const FOOTER_HEIGHT = 170; // Adjust this value as needed
 
 const ChatInterface = ({
   messages: exampleMessages,
@@ -177,28 +178,31 @@ const ChatInterface = ({
 
       {/* Chat input */}
       <div
-        className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-950 p-4"
+        className="flex flex-col fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-950 p-4 gap-2"
         style={{ height: FOOTER_HEIGHT }}
       >
-        <div className="flex max-w-3xl mx-auto gap-2">
-          {/* <p>{agentState}</p> */}
-          {agentState == EAgentState.RUNNING && (
-            <div className="flex justify-center items-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-zinc-500"></div>
-            </div>
-          )}
+        {/* Agent Status */}
+        <div className="flex w-full max-w-3xl mx-auto gap-2">
+          <Badge variant={"secondary"} style={{ fontSize: "0.9rem" }}>
+            {agentState == EAgentState.RUNNING && (
+              <div className="flex justify-center items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-zinc-500"></div>
+              </div>
+            )}
 
-          {currentStep !== 0 && (
-            <p>
-              {agentState == EAgentState.RUNNING ? "Running" : "Finished"} Step:{" "}
-              {currentStep}/{maxStep}
-            </p>
-          )}
+            {currentStep !== 0 && (
+              <p>
+                {agentState == EAgentState.RUNNING ? "Running" : "Finished"}{" "}
+                Step: {currentStep}/{maxStep}
+              </p>
+            )}
+          </Badge>
         </div>
 
-        <div className="flex items-center space-x-2 max-w-3xl mx-auto h-full">
+        {/* Input area */}
+        <div className="flex flex-grow w-full items-center space-x-2 max-w-3xl mx-auto">
           <textarea
-            className="flex-1 h-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 p-3 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex flex-1 flex-grow h-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 p-3 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="What do you want to do?"
             value={prompt}
             onChange={(e) => {
@@ -226,7 +230,7 @@ const ChatInterface = ({
                 setDisableStop(true);
                 setTimeout(() => {
                   setDisableStop(false);
-                }, 2000);
+                }, 6000);
               }}
             >
               <StopCircleIcon />
