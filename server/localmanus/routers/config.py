@@ -17,5 +17,5 @@ async def update_config(request: Request):
     data = await request.json()
     res = await config_service.update_config(data) 
     if res['status'] == 'success':
-        await agent_service.reload_agent()
+        agent_service.reload_agent()
     return res
