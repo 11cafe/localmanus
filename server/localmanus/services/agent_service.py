@@ -9,7 +9,7 @@ class AgentService:
 
     def reload_agent(self):
         self.agent = Manus()
-        self.agent.max_steps = 4
+        self.agent.max_steps = 10
         original_think = self.agent.think
         async def new_think():
             if self.cancel_event.is_set():

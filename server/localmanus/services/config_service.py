@@ -1,4 +1,5 @@
 import os
+import traceback
 import toml
 
 class ConfigService:
@@ -26,9 +27,19 @@ class ConfigService:
 
     async def update_config(self, data):
         try:
-            with open(self.config_file, 'r') as f:
-                config = toml.load(f)
-            
+            if not os.path.exists(self.config_file):
+                config = {
+                    "llm": {
+                        "model": "claude-3-7-sonnet-20250219",        # The LLM model to use
+                        "base_url": "https://api.anthropic.com/v1/",  # API endpoint URL
+                        "api_key": "",                                # Your API key (leave empty for user to fill)
+                        "max_tokens": 8192,                           # Maximum number of tokens in the response
+                        "temperature": 0.0                            # Controls randomness
+                    }
+                }
+            else:
+                with open(self.config_file, 'r') as f:
+                    config = toml.load(f)
             if 'llm' in data:
                 llm_config = data['llm']
                 for key in ['model', 'base_url', 'api_key', 'max_tokens', 'temperature']:
@@ -43,6 +54,7 @@ class ConfigService:
             
             return {"status": "success", "message": "Configuration updated successfully"}
         except Exception as e:
+            traceback.print_exc()
             return {"status": "error", "message": str(e)} 
         
 config_service = ConfigService()

@@ -3,6 +3,7 @@ import { EAgentState, Message, MessageGroup, ToolCall } from "./types/types";
 import { Button } from "./components/ui/button";
 import { SendIcon, SquareIcon, StopCircleIcon } from "lucide-react";
 import { Badge } from "./components/ui/badge";
+import { Textarea } from "./components/ui/textarea";
 
 const FOOTER_HEIGHT = 170; // Adjust this value as needed
 
@@ -107,14 +108,17 @@ const ChatInterface = ({
   };
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen relative">
       {/* Chat header */}
       <header className="p-4">
         <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100"></h1>
       </header>
 
       {/* Chat messages */}
-      <div className="flex-1 p-4" style={{ paddingBottom: FOOTER_HEIGHT }}>
+      <div
+        className="flex-1 p-4 overflow-y-auto"
+        style={{ paddingBottom: FOOTER_HEIGHT }}
+      >
         <div className="space-y-6 max-w-3xl mx-auto">
           {processedMessages.map((group) => (
             <div
@@ -178,7 +182,7 @@ const ChatInterface = ({
 
       {/* Chat input */}
       <div
-        className="flex flex-col fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-950 p-4 gap-2"
+        className="flex flex-col absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-950 p-4 gap-2"
         style={{ height: FOOTER_HEIGHT }}
       >
         {/* Agent Status */}
@@ -201,8 +205,8 @@ const ChatInterface = ({
 
         {/* Input area */}
         <div className="flex flex-grow w-full items-center space-x-2 max-w-3xl mx-auto">
-          <textarea
-            className="flex flex-1 flex-grow h-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 p-3 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          <Textarea
+            className="flex flex-1 flex-grow h-full"
             placeholder="What do you want to do?"
             value={prompt}
             onChange={(e) => {

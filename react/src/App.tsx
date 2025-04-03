@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import { Button } from "./components/ui/button";
-import { SettingsIcon } from "lucide-react";
+import { MoonIcon, SettingsIcon, SunIcon } from "lucide-react";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import Settings from "./Settings";
 import { EAgentState, Message } from "./types/types";
 import ChatInterface from "./Chat";
 import { exampleMessages } from "./exampleMessages";
+import { ThemeProvider } from "@/components/theme-provider";
+import { useTheme } from "@/components/theme-provider";
 
 function Home() {
   const [agentState, setAgentState] = useState(EAgentState.IDLE);
@@ -16,6 +18,7 @@ function Home() {
   const [totalTokens, setTotalTokens] = useState(0);
 
   const webSocketRef = useRef<WebSocket | null>(null);
+  const { setTheme, theme } = useTheme();
 
   useEffect(() => {
     // Create WebSocket connection
@@ -70,36 +73,49 @@ function Home() {
 
   return (
     <div>
-      <div className="fixed top-5 left-8">
+      <div className="flex">
+        <div className="flex-1 flex-grow">
+          <ChatInterface
+            messages={messages}
+            totalTokens={totalTokens}
+            currentStep={currentStep}
+            maxStep={maxSteps}
+            agentState={agentState}
+          />
+        </div>
+        <div className="w-[400px] bg-sidebar h-screen">
+          <h1>Workspace</h1>
+        </div>
+      </div>
+      <div className="fixed top-5 left-8 flex gap-1">
         <Link to="/settings">
           <Button size={"icon"}>
             <SettingsIcon size={30} />
           </Button>
         </Link>
-      </div>
-
-      <div>
-        <ChatInterface
-          messages={messages}
-          totalTokens={totalTokens}
-          currentStep={currentStep}
-          maxStep={maxSteps}
-          agentState={agentState}
-        />
+        <Button
+          size={"icon"}
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        >
+          {theme === "dark" ? <SunIcon size={30} /> : <MoonIcon size={30} />}
+        </Button>
       </div>
     </div>
   );
 }
 
 function App() {
+  const { theme } = useTheme();
   return (
     <BrowserRouter>
-      <div className="app-container">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/settings" element={<Settings />} />
-        </Routes>
-      </div>
+      <ThemeProvider defaultTheme={theme} storageKey="vite-ui-theme">
+        <div className="app-container">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+        </div>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

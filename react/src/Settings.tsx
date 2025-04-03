@@ -17,7 +17,7 @@ import {
 } from "./components/ui/card";
 import { Button } from "./components/ui/button";
 import { Label } from "./components/ui/label";
-import { Save } from "lucide-react";
+import { ArrowLeftIcon, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function Settings() {
@@ -58,10 +58,10 @@ export default function Settings() {
           throw new Error("Failed to load configuration");
         }
         const result = await response.json();
-        
+
         if (result.status === "success" && result.config.llm) {
           const config = result.config.llm;
-          
+
           // Determine provider based on base_url
           if (config.base_url?.includes("openai")) {
             setProvider("openai");
@@ -71,7 +71,7 @@ export default function Settings() {
             setProvider("url");
             setApiUrl(config.base_url || "");
           }
-          
+
           setModel(config.model || "gpt-4-turbo-preview");
           setMaxTokens(config.max_tokens || 8192);
           setApiKey(config.api_key || "");
@@ -143,7 +143,14 @@ export default function Settings() {
   };
 
   return (
-    <div className="flex items-center justify-center p-4">
+    <div className="flex flex-col items-center justify-center p-4">
+      <Button
+        onClick={() => navigate("/")}
+        className="fixed top-4 left-4"
+        size={"icon"}
+      >
+        <ArrowLeftIcon />
+      </Button>
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
@@ -198,7 +205,7 @@ export default function Settings() {
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="apiKey">API Key</Label>
             <Input
@@ -231,10 +238,6 @@ export default function Settings() {
 
           <Button onClick={handleSave} className="w-full">
             <Save className="mr-2 h-4 w-4" /> Save Settings
-          </Button>
-
-          <Button onClick={() => navigate("/")} className="w-full">
-            Return
           </Button>
 
           {successMessage && (
