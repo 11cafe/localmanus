@@ -110,9 +110,9 @@ const ChatInterface = ({
   return (
     <div className="flex flex-col h-screen relative">
       {/* Chat header */}
-      <header className="p-4">
+      {/* <header className="p-4">
         <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100"></h1>
-      </header>
+      </header> */}
 
       {/* Chat messages */}
       <div

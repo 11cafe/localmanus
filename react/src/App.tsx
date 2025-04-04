@@ -1,7 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import { Button } from "./components/ui/button";
-import { MoonIcon, SettingsIcon, SunIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ComputerIcon,
+  MoonIcon,
+  SettingsIcon,
+  SidebarCloseIcon,
+  SidebarIcon,
+  SidebarOpenIcon,
+  SunIcon,
+} from "lucide-react";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import Settings from "./Settings";
 import { EAgentState, Message } from "./types/types";
@@ -9,6 +19,7 @@ import ChatInterface from "./Chat";
 import { exampleMessages } from "./exampleMessages";
 import { ThemeProvider } from "@/components/theme-provider";
 import { useTheme } from "@/components/theme-provider";
+import WorkspaceSidebar from "./WorkspaceSidebar";
 
 function Home() {
   const [agentState, setAgentState] = useState(EAgentState.IDLE);
@@ -19,7 +30,7 @@ function Home() {
 
   const webSocketRef = useRef<WebSocket | null>(null);
   const { setTheme, theme } = useTheme();
-
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
   useEffect(() => {
     // Create WebSocket connection
     const socket = new WebSocket("/ws");
@@ -33,11 +44,6 @@ function Home() {
     // Listen for messages
     socket.addEventListener("message", (event) => {
       const data = JSON.parse(event.data);
-      const filteredMessages = data.messages.map((message: Message) => ({
-        ...message,
-        base64_image: "fake_ba64_xyz",
-      }));
-      console.log("Received message:", filteredMessages);
       setMessages(data.messages);
       setAgentState(data.agent_state);
       setCurrentStep(data.current_step);
@@ -72,34 +78,50 @@ function Home() {
   };
 
   return (
-    <div>
-      <div className="flex">
-        <div className="flex-1 flex-grow">
-          <ChatInterface
-            messages={messages}
-            totalTokens={totalTokens}
-            currentStep={currentStep}
-            maxStep={maxSteps}
-            agentState={agentState}
-          />
-        </div>
-        <div className="w-[400px] bg-sidebar h-screen">
-          <h1>Workspace</h1>
-        </div>
-      </div>
-      <div className="fixed top-5 left-8 flex gap-1">
-        <Link to="/settings">
-          <Button size={"icon"}>
-            <SettingsIcon size={30} />
+    <div className="flex">
+      <div className="flex-1 flex-grow relative">
+        <ChatInterface
+          messages={messages}
+          totalTokens={totalTokens}
+          currentStep={currentStep}
+          maxStep={maxSteps}
+          agentState={agentState}
+        />
+        <div className="absolute top-5 left-8 flex gap-1">
+          <Link to="/settings">
+            <Button size={"sm"}>
+              <SettingsIcon size={30} />
+            </Button>
+          </Link>
+          <Button
+            size={"sm"}
+            variant={"ghost"}
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          >
+            {theme === "dark" ? <SunIcon size={30} /> : <MoonIcon size={30} />}
           </Button>
-        </Link>
-        <Button
-          size={"icon"}
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        >
-          {theme === "dark" ? <SunIcon size={30} /> : <MoonIcon size={30} />}
-        </Button>
+        </div>
+        <div className="absolute top-5 right-8 flex gap-1">
+          <Button
+            size={"sm"}
+            onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+          >
+            {isRightSidebarOpen ? (
+              <SidebarOpenIcon />
+            ) : (
+              <div className="flex">
+                <ChevronLeftIcon />
+                <ComputerIcon />
+              </div>
+            )}
+          </Button>
+        </div>
       </div>
+      {isRightSidebarOpen && (
+        <div className="w-[400px] bg-sidebar h-screen">
+          <WorkspaceSidebar />
+        </div>
+      )}
     </div>
   );
 }

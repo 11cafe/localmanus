@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, ipcMain, shell } = require("electron");
 const path = require("path");
 
 const port =
@@ -16,5 +16,9 @@ function createWindow() {
 
   win.loadURL(`http://localhost:${port}`); // Use dynamic port
 }
+
+ipcMain.on("show-in-folder", (event, filePath) => {
+  shell.showItemInFolder(filePath);
+});
 
 app.whenReady().then(createWindow);

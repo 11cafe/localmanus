@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 from fastapi import APIRouter, Request
+from fastapi.responses import FileResponse
 from localmanus.services.agent_service import agent_service
 from openmanus.app.config import WORKSPACE_ROOT
 
@@ -22,4 +23,11 @@ async def cancel():
 
 @router.get("/workspace_list")
 async def workspace_list():
-    return [{"name": entry.name, "is_dir": entry.is_dir()} for entry in Path(WORKSPACE_ROOT).iterdir()]
+    return [{"name": entry.name, "is_dir": entry.is_dir(), "path": str(entry)} for entry in Path(WORKSPACE_ROOT).iterdir()]
+
+@router.get("/workspace_download")
+async def workspace_download(path: str):
+    file_path = Path(path)
+    if file_path.exists() and file_path.is_file():
+        return FileResponse(file_path)
+    return {"error": "File not found"}
