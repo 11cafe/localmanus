@@ -5,20 +5,20 @@ const port =
   "8000";
 
 // 启动 Python FastAPI
-// const backend = spawn("python", ["web_run.py", "--port", port]);
+const backend = spawn("python", ["server/localmanus/main.py", "--port", port]);
 
-// backend.stdout.on("data", (data) => {
-//   console.log(`[FastAPI]: ${data}`);
-// });
+backend.stdout.on("data", (data) => {
+  console.log(`[FastAPI]: ${data}`);
+});
 
 // 启动 Vite 前端
-const frontend = spawn("npm", ["run", "dev", "--", "--port", port], {
-  cwd: "react",
-});
+// const frontend = spawn("npm", ["run", "dev", "--", "--port", port], {
+//   cwd: "react",
+// });
 
-frontend.stdout.on("data", (data) => {
-  console.log(`[Frontend]: ${data}`);
-});
+// frontend.stdout.on("data", (data) => {
+//   console.log(`[Frontend]: ${data}`);
+// });
 
 // 延迟几秒启动 Electron，确保前端可用
 setTimeout(() => {

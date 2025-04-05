@@ -10,6 +10,8 @@ openmanus_dir = os.path.join(root_dir, "openmanus")
 sys.path.append(openmanus_dir)
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from localmanus.routers import config, agent, websocket
 
 # Initialize FastAPI app
@@ -20,10 +22,15 @@ app.include_router(config.router)
 app.include_router(agent.router)
 app.include_router(websocket.router)
 
+# Mount the React build directory
+react_build_dir = os.path.join(os.path.dirname(root_dir), "react", "dist")
+app.mount("/assets", StaticFiles(directory=os.path.join(react_build_dir, "assets")), name="assets")
+
 @app.get("/")
-async def hello():
-    return {"message": "Hello from FastAPI!"}
+async def serve_react_app():
+    return FileResponse(os.path.join(react_build_dir, "index.html"))
+
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
