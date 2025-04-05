@@ -20,14 +20,24 @@ import { Label } from "./components/ui/label";
 import { ArrowLeftIcon, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+type LLMConfig = {
+  model: string;
+  base_url: string;
+  max_tokens: number;
+  temperature: number;
+  api_key?: string;
+};
+
 export default function Settings() {
   const [provider, setProvider] = useState("openai");
   const [apiKey, setApiKey] = useState("");
+  const [isApiKeyDirty, setIsApiKeyDirty] = useState(false);
   const [maxTokens, setMaxTokens] = useState(8192);
   const [apiUrl, setApiUrl] = useState("");
-  const [model, setModel] = useState("gpt-4-turbo-preview");
+  const [model, setModel] = useState("gpt-4o");
   const [isLoading, setIsLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const openaiProvider = {
     name: "openai",
@@ -95,21 +105,33 @@ export default function Settings() {
       } else if (provider === "anthropic") {
         baseUrl = anthropicProvider.baseUrl;
       }
-
+      if (!getModelOptions().some((option) => option.value === model)) {
+        setErrorMessage("Please select a supported model");
+        return;
+      }
+      if (!apiKey.length) {
+        setErrorMessage("API key is required");
+        return;
+      }
+      setErrorMessage("");
+      const input: { llm: LLMConfig } = {
+        llm: {
+          model: model,
+          base_url: baseUrl,
+          max_tokens: maxTokens,
+          temperature: 0.0,
+        },
+      };
+      // api_key sending from server is masked, so we only change api_key if user entered a real new value
+      if (isApiKeyDirty) {
+        input.llm.api_key = apiKey;
+      }
       const response = await fetch("/api/config", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          llm: {
-            model: model,
-            base_url: baseUrl,
-            api_key: apiKey,
-            max_tokens: maxTokens,
-            temperature: 0.0,
-          },
-        }),
+        body: JSON.stringify(input),
       });
 
       if (!response.ok) {
@@ -119,12 +141,15 @@ export default function Settings() {
       const result = await response.json();
       if (result.status === "success") {
         setSuccessMessage("Settings saved successfully!");
-        console.log("Settings saved successfully");
+        setTimeout(() => {
+          navigate("/");
+        }, 1100);
       } else {
         throw new Error(result.message || "Failed to save configuration");
       }
     } catch (error) {
       console.error("Error saving settings:", error);
+      setErrorMessage("Failed to save settings");
       // You might want to show an error message to the user here
     }
   };
@@ -213,7 +238,10 @@ export default function Settings() {
               type="password"
               placeholder="Enter your API key"
               value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
+              onChange={(e) => {
+                setApiKey(e.target.value);
+                setIsApiKeyDirty(true);
+              }}
               className="w-full"
             />
             <p className="text-xs text-gray-500">
@@ -244,6 +272,9 @@ export default function Settings() {
             <div className="text-green-500 text-center mb-4">
               {successMessage}
             </div>
+          )}
+          {errorMessage && (
+            <div className="text-red-500 text-center mb-4">{errorMessage}</div>
           )}
         </CardContent>
       </Card>

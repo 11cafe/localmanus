@@ -12,7 +12,13 @@ import {
   SidebarOpenIcon,
   SunIcon,
 } from "lucide-react";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  useNavigate,
+} from "react-router-dom";
 import Settings from "./Settings";
 import { EAgentState, Message } from "./types/types";
 import ChatInterface from "./Chat";
@@ -31,6 +37,8 @@ function Home() {
   const webSocketRef = useRef<WebSocket | null>(null);
   const { setTheme, theme } = useTheme();
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
+  const navigate = useNavigate();
+
   useEffect(() => {
     // Create WebSocket connection
     const socket = new WebSocket("/ws");
@@ -60,6 +68,14 @@ function Home() {
     socket.addEventListener("error", (event) => {
       console.error("WebSocket error:", event);
     });
+
+    fetch("/api/config/exists")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.exists) {
+          navigate("/settings");
+        }
+      });
 
     // Clean up on component unmount
     return () => {

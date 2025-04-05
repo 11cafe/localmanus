@@ -6,7 +6,7 @@ router = APIRouter(prefix="/api/config")
 
 @router.get("/exists")
 async def config_exists():
-    return await config_service.exists_config()
+    return {"exists": await config_service.exists_config()}
 
 @router.get("")
 async def get_config():
