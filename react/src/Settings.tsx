@@ -140,10 +140,9 @@ export default function Settings() {
 
       const result = await response.json();
       if (result.status === "success") {
-        setSuccessMessage("Settings saved successfully!");
-        setTimeout(() => {
-          navigate("/");
-        }, 1100);
+        setSuccessMessage(
+          "Settings saved! Please **restart** the app. Otherwise, the changes will not take effect."
+        );
       } else {
         throw new Error(result.message || "Failed to save configuration");
       }

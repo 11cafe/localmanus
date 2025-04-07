@@ -1,8 +1,14 @@
 import os
 import sys
 
-# Setup root directory
-root_dir = os.path.dirname(os.path.dirname(__file__))
+if getattr(sys, 'frozen', False):
+    # If running in a PyInstaller bundle, __file__ will point inside the bundle,
+    # so you have to handle that carefully. Typically you use sys._MEIPASS
+    # to find the "extracted" folder. For example:
+    root_dir = os.path.join(sys._MEIPASS)
+else:
+    root_dir = os.path.dirname(__file__)
+
 sys.path.append(root_dir)  # Add the server directory to Python path
 
 # Add the openmanus directory to Python path
